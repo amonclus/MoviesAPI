@@ -42,7 +42,7 @@ Reviews
 - DELETE /movies/{movie_id}/reviews/{review_id}: Delete a review.
 
 ## Project structure
-
+```bash
 MoviesAPI/
 ├── src/
 │   ├── main/
@@ -62,3 +62,4 @@ MoviesAPI/
 ├── .gitignore                 # Git ignore rules
 ├── mvnw, [mvnw.cmd](http://_vscodecontentref_/2)             # Maven Wrapper scripts
 └── [README.md](http://_vscodecontentref_/3)                  # Project documentation
+```
