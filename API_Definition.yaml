@@ -1,0 +1,193 @@
+openapi: 3.0.0
+info:
+  title: Movies API
+  description: API para manejar películas y reseñas.
+  version: 1.0.0
+paths:
+  /movies:
+    get:
+      summary: Retorna una lista de todas las películas.
+      responses:
+        '200':
+          description: Lista de películas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Movie'
+    post:
+      summary: Crea una nueva película con nombre, duración y género.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Movie'
+      responses:
+        '201':
+          description: Película creada
+  /movies/{movieId}:
+    get:
+      summary: Retorna los detalles de la película identificada por movieId.
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalles de la película
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+    put:
+      summary: Actualiza los datos de la película identificada por movieId.
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Movie'
+      responses:
+        '200':
+          description: Película actualizada
+    delete:
+      summary: Elimina la película identificada por movieId.
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Película eliminada
+  /movies/{movieId}/reviews:
+    get:
+      summary: Retorna una lista de todas las reseñas asociadas a la película identificada por movieId.
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de reseñas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+    post:
+      summary: Crea una nueva reseña para la película identificada por movieId utilizando el  correo del creador y descripción.
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '201':
+          description: Reseña creada
+  /movies/{movieId}/reviews/{reviewId}:
+    get:
+      summary: Retorna los detalles de la reseña identificada por reviewId para la película con movieId.
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalles de la reseña
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+    put:
+      summary: Actualiza los datos de la reseña identificada por reviewId para la película con movieId.
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '200':
+          description: Reseña actualizada
+    delete:
+      summary: Elimina la reseña identificada por reviewId para la película con movieId.
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Reseña eliminada
+components:
+  schemas:
+    Movie:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        duration:
+          type: string
+        genre:
+          type: string
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        description:
+          type: string
