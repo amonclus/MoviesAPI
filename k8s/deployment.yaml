@@ -26,8 +26,10 @@ spec:
               cpu: "500m"
           env:
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://db:3306/movies"
+              value: "jdbc:mysql://mysql-service:3306/movies"
             - name: SPRING_DATASOURCE_USERNAME
               value: "root"
             - name: SPRING_DATASOURCE_PASSWORD
               value: "root"
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: "update"
