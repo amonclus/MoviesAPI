@@ -17,11 +17,9 @@ spec:
           image: mysql:8.0
           ports:
             - containerPort: 3306
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: "root"
-            - name: MYSQL_DATABASE
-              value: "movies"
+          envFrom:
+            - secretRef:
+                name: deployment-secrets
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql

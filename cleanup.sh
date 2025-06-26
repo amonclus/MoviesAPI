@@ -9,7 +9,7 @@ kubectl delete deployment movies-api-deployment --ignore-not-found=true
 kubectl delete deployment mysql-deployment --ignore-not-found=true
 kubectl delete service movies-api-service --ignore-not-found=true
 kubectl delete service mysql-service --ignore-not-found=true
-
+kubectl delete secret deployment-secrets  --ignore-not-found=true
 echo "Verifying cleanup..."
 kubectl get all
 
