@@ -5,6 +5,10 @@ API_BASE="http://movies-api-service:80/movies"
 
 echo "=== Movies API Test Job Started at $(date) ==="
 
+# Test connectivity first
+echo "Testing connectivity to movies-api-service..."
+curl -s --connect-timeout 10 "http://movies-api-service:80/movies" || echo "Failed to connect to service"
+
 # Test 1: Create a new movie
 echo "Creating a new movie..."
 MOVIE_DATA="{\"name\":\"Test Movie $(date +%s)\",\"duration\":\"120 min\",\"genre\":\"Action\"}"

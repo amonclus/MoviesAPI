@@ -100,6 +100,8 @@ public class MovieService {
     }
 
     public void deleteMovie(Long movie_id) {
+        Movie movie = movieRepository.findById(movie_id)
+            .orElseThrow(() -> new NotFoundException("Movie not found with id: " + movie_id));
         movieRepository.deleteById(movie_id);
     }
 

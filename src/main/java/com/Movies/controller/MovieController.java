@@ -76,7 +76,7 @@ public class MovieController {
         return movieService.updateReviewByMovieIdAndReviewId(movie_id, review_id, review);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{movie_id}")
     public void deleteMovie(@PathVariable Long movie_id) {
         movieService.deleteMovie(movie_id);
     }
