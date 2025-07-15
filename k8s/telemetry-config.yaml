@@ -1,0 +1,54 @@
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: movies-api-telemetry
+  namespace: default
+spec:
+  metrics:
+  - providers:
+    - name: prometheus
+  - overrides:
+    - match:
+        metric: REQUEST_COUNT
+      tagOverrides:
+        movie_id:
+          value: "%{REQUEST_HEADERS['x-movie-id']}"
+        operation_type:
+          value: "%{REQUEST_HEADERS['x-operation-type']}"
+        user_id:
+          value: "%{REQUEST_HEADERS['x-user-id']}"
+    - match:
+        metric: REQUEST_DURATION
+      tagOverrides:
+        movie_id:
+          value: "%{REQUEST_HEADERS['x-movie-id']}"
+        operation_type:
+          value: "%{REQUEST_HEADERS['x-operation-type']}"
+        user_id:
+          value: "%{REQUEST_HEADERS['x-user-id']}"
+    - match:
+        metric: REQUEST_SIZE
+      tagOverrides:
+        operation_type:
+          value: "%{REQUEST_HEADERS['x-operation-type']}"
+    - match:
+        metric: RESPONSE_SIZE
+      tagOverrides:
+        operation_type:
+          value: "%{REQUEST_HEADERS['x-operation-type']}"
+  tracing:
+  - providers:
+    - name: jaeger
+  - customTags:
+      movie_id:
+        header:
+          name: x-movie-id
+      user_id:
+        header:
+          name: x-user-id
+      operation_type:
+        header:
+          name: x-operation-type
+      request_id:
+        header:
+          name: x-request-id

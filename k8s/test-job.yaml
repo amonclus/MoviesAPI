@@ -1,9 +1,10 @@
+# filepath: \\wsl.localhost\Ubuntu\home\amonclus\MoviesAPI\k8s\test-job.yaml
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: movies-api-test-cronjob
 spec:
-  schedule: "* * * * *"  
+  schedule: "* * * * *"  # Changed to every 5 minutes
   jobTemplate:
     spec:
       template:
@@ -19,13 +20,19 @@ spec:
               set -e
               API_BASE="http://movies-api-service:80/movies"
               
-              echo "Movies API Test Job Started at $(date)"
+              echo "=== Movies API Observability Test Started at $(date) ==="
               
-              # Test 1: Create a new movie
-              echo "Creating a new movie..."
-              MOVIE_DATA="{\"name\":\"Test Movie $(date +%s)\",\"duration\":\"120 min\",\"genre\":\"Action\"}"
+              # Generate unique request ID for tracing
+              REQUEST_ID="test-$(date +%s)-$$"
+              
+              # Test 1: Create movie with observability headers
+              echo "Creating movie with tracing headers..."
+              MOVIE_DATA="{\"name\":\"Traced Movie $(date +%s)\",\"duration\":\"120 min\",\"genre\":\"Action\"}"
               MOVIE_RESPONSE=$(curl -s -X POST \
                 -H "Content-Type: application/json" \
+                -H "x-request-id: $REQUEST_ID-create" \
+                -H "x-operation-type: create" \
+                -H "x-user-id: test-user" \
                 -d "$MOVIE_DATA" \
                 "$API_BASE" || echo "Failed to create movie")
               
@@ -41,31 +48,58 @@ spec:
                 REVIEW1="{\"email\":\"tester1@example.com\",\"description\":\"Great movie!\",\"rating\":10}"
                 curl -s -X POST \
                   -H "Content-Type: application/json" \
+                  -H "x-request-id: $REQUEST_ID-review1" \
+                  -H "x-operation-type: create" \
+                  -H "x-movie-id: $MOVIE_ID" \
+                  -H "x-user-id: test-user" \
                   -d "$REVIEW1" \
                   "$API_BASE/$MOVIE_ID/reviews" || echo "Failed to add review 1"
                 
                 REVIEW2="{\"email\":\"tester2@example.com\",\"description\":\"Decent movie\",\"rating\":7}"
                 curl -s -X POST \
                   -H "Content-Type: application/json" \
+                  -H "x-request-id: $REQUEST_ID-review2" \
+                  -H "x-operation-type: create" \
+                  -H "x-movie-id: $MOVIE_ID" \
+                  -H "x-user-id: test-user" \
                   -d "$REVIEW2" \
                   "$API_BASE/$MOVIE_ID/reviews" || echo "Failed to add review 2"
                 
                 echo "Fetching movie with reviews..."
-                curl -s "$API_BASE/$MOVIE_ID" || echo "Failed to fetch movie"
+                curl -s \
+                  -H "x-request-id: $REQUEST_ID-fetch" \
+                  -H "x-operation-type: read" \
+                  -H "x-movie-id: $MOVIE_ID" \
+                  -H "x-user-id: test-user" \
+                  "$API_BASE/$MOVIE_ID" || echo "Failed to fetch movie"
                 
                 echo "Fetching movie reviews..."
-                REVIEWS_RESPONSE=$(curl -s "$API_BASE/$MOVIE_ID/reviews" || echo "Failed to fetch reviews")
+                REVIEWS_RESPONSE=$(curl -s \
+                  -H "x-request-id: $REQUEST_ID-reviews" \
+                  -H "x-operation-type: read" \
+                  -H "x-movie-id: $MOVIE_ID" \
+                  -H "x-user-id: test-user" \
+                  "$API_BASE/$MOVIE_ID/reviews" || echo "Failed to fetch reviews")
                 echo "Reviews: $REVIEWS_RESPONSE"
                 
                 echo "Updating movie $MOVIE_ID..."
                 UPDATED_MOVIE="{\"name\":\"Updated Test Movie $(date +%s)\",\"duration\":\"135 min\",\"genre\":\"Thriller\"}"
                 curl -s -X PUT \
                   -H "Content-Type: application/json" \
+                  -H "x-request-id: $REQUEST_ID-update" \
+                  -H "x-operation-type: update" \
+                  -H "x-movie-id: $MOVIE_ID" \
+                  -H "x-user-id: test-user" \
                   -d "$UPDATED_MOVIE" \
                   "$API_BASE/$MOVIE_ID" || echo "Failed to update movie"
                 
                 echo "Getting movie rating..."
-                curl -s "$API_BASE/$MOVIE_ID/rating" || echo "Failed to get rating"
+                curl -s \
+                  -H "x-request-id: $REQUEST_ID-rating" \
+                  -H "x-operation-type: read" \
+                  -H "x-movie-id: $MOVIE_ID" \
+                  -H "x-user-id: test-user" \
+                  "$API_BASE/$MOVIE_ID/rating" || echo "Failed to get rating"
                 
                 REVIEW_ID=$(echo "$REVIEWS_RESPONSE" | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*' || echo "")
                 if [ -n "$REVIEW_ID" ]; then
@@ -73,6 +107,11 @@ spec:
                   UPDATED_REVIEW="{\"email\":\"tester1@example.com\",\"description\":\"Updated: Excellent test movie!\",\"rating\":5}"
                   curl -s -X PUT \
                     -H "Content-Type: application/json" \
+                    -H "x-request-id: $REQUEST_ID-review-update" \
+                    -H "x-operation-type: update" \
+                    -H "x-movie-id: $MOVIE_ID" \
+                    -H "x-review-id: $REVIEW_ID" \
+                    -H "x-user-id: test-user" \
                     -d "$UPDATED_REVIEW" \
                     "$API_BASE/$MOVIE_ID/reviews/$REVIEW_ID" || echo "Failed to update review"
                 fi
@@ -81,12 +120,21 @@ spec:
               fi
               
               echo "Fetching all movies..."
-              curl -s "$API_BASE" || echo "Failed to fetch all movies"
+              curl -s \
+                -H "x-request-id: $REQUEST_ID-list" \
+                -H "x-operation-type: read" \
+                -H "x-user-id: test-user" \
+                "$API_BASE" || echo "Failed to fetch all movies"
               
               echo "Searching movies by genre..."
-              curl -s "$API_BASE?genre=Action" || echo "Failed to search by genre"
+              curl -s \
+                -H "x-request-id: $REQUEST_ID-search" \
+                -H "x-operation-type: read" \
+                -H "x-user-id: test-user" \
+                "$API_BASE?genre=Action" || echo "Failed to search by genre"
               
-              echo "Movies API Test Job Completed at $(date)"
+              echo "=== Request ID: $REQUEST_ID ==="
+              echo "=== Movies API Observability Test Completed at $(date) ==="
           resources:
             requests:
               memory: "64Mi"

@@ -1,0 +1,50 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: movies-api-gateway
+  namespace: default
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: movies-api-vs
+  namespace: default
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - movies-api-gateway
+  http:
+  - match:
+    - uri:
+        prefix: "/movies"
+    route:
+    - destination:
+        host: movies-api-service
+        port:
+          number: 80
+    headers:
+      request:
+        add:
+          x-forwarded-proto: "http"
+      response:
+        add:
+          x-served-by: "istio-gateway"
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: movies-api-service
+        port:
+          number: 80
