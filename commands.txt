@@ -1,0 +1,57 @@
+K8s start:
+minikube start
+  kubectl apply -f k8s/mysql-statefulset.yaml
+  kubectl apply -f k8s/mysql-service.yaml
+  kubectl apply -f k8s/deployment.yaml
+  kubectl apply -f k8s/service.yaml
+
+Istio configurations:
+kubectl apply -f k8s/telemetry-config.yaml
+kubectl apply -f k8s/istio-gateway.yaml
+kubectl apply -f k8s/destination-rule.yaml
+kubectl apply -f k8s/grafana-dashboard.yaml
+
+kubectl apply -f k8s/test-job.yaml
+
+Get node port:
+kubectl get service movies-api-service
+
+Get cluster IP:
+minikube ip
+
+Access the app:
+curl http://<NODE_IP>:<NODE_PORT>
+
+Port forwarding (For access via localhost):
+kubectl port-forward service/movies-api-service 8080:80
+
+kubectl port-forward -n istio-system svc/grafana 3000:3000 &
+kubectl port-forward -n istio-system svc/jaeger-collector 14268:14268 &
+kubectl port-forward -n istio-system svc/kiali 20001:20001 &
+istioctl dashboard jaeger
+
+Test API from terminal:
+curl http://localhost:8080/movies
+
+Clean up:
+kubectl delete -f k8s/deployment.yaml
+kubectl delete -f k8s/service.yaml
+kubectl delete -f k8s/mysql-deployment.yaml
+
+Post with form data:
+curl -X POST http://localhost:8080/api/movies \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "title=Inception&director=Christopher Nolan&year=2010&genre=Thriller"
+
+Create secrets:
+kubectl create secret generic deployment-secrets --from-env-file=.env
+
+CronJob commands:
+kubectl apply -f k8s/test-job.yaml
+kubectl get cronjobs
+kubectl get jobs
+kubectl logs job/$(kubectl get jobs --sort-by=.metadata.creationTimestamp | tail -1 | awk '{print $1}')
+kubectl describe cronjob movies-api-test-cronjob
+
+Background port forward:
+nohup kubectl port-forward service/movies-api-service 8080:80 > port-forward.log 2>&1 &
